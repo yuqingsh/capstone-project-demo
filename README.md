@@ -6,9 +6,9 @@ Credit: [Optiguide](https://github.com/microsoft/OptiGuide/tree/main)
 # Secret Key Setting
 Before running the notebook, you should set you OpenAI secret key as a environment variable
 
-Fill in the line with your OpenAI key on top of the notebooks. You can find your OpenAI API key [here](https://platform.openai.com/api-keys).
+Fill in the line with your OpenAI key before running. You can find your OpenAI API key [here](https://platform.openai.com/api-keys).
 ```python
-%env OPENAI_API_KEY='YOUR_SECRET_KEY'
+openai.api_key = "YOUR_API_KEY_HERE"
 ```
 
 # Examples
