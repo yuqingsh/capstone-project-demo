@@ -1,3 +1,5 @@
 secret
 secrets.toml
 .*
+__pycache__
+.streamlit
