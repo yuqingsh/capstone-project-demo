@@ -1,5 +1,5 @@
 secret
 secrets.toml
-.*
 __pycache__
 .streamlit
+.DS_Store
