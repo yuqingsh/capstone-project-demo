@@ -7,6 +7,6 @@ Credit: [Optiguide](https://github.com/microsoft/OptiGuide/tree/main)
 Before running the notebook, you should set you OpenAI secret key as a environment variable
 
 ```
-export OPENAI_API_KEY = "*YOUR OPENAI KEY HERE*"
+export OPENAI_API_KEY="*YOUR OPENAI KEY HERE*"
 ```
 
