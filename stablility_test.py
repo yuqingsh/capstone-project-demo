@@ -35,6 +35,8 @@ message_set = [
     "What implications would a 15 percent augmentation in Birmingham's throughput have?",
 ]
 
+counter = 0
+
 with open("log.txt", "w") as f:
     sys.stdout = f
     sys.stderr = f
@@ -58,7 +60,7 @@ with open("log.txt", "w") as f:
                 }
             },
         )
-        openai.api_key = "YOUR_KEY_HERE"
+        openai.api_key = "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"
 
         code = open("supply_network.py", "r").read()  # for local files
 
@@ -111,3 +113,5 @@ with open("log.txt", "w") as f:
 
         print("one cycle done, sleep for 60s")
         time.sleep(60)
+
+print(counter)

@@ -55,4 +55,4 @@ for sec_res in res:
     correct_ans = 197000
     if correct_ans in sec_res:
         correct_cnt += 1
-print(correct_cnt)
+print(correct_cnt, "/", len(res))
