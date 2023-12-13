@@ -1,0 +1,14 @@
+----------
+Question: How can we adjust the model if we want to explore a scenario where the planting cost at Farm 1 increases by 10%?
+Answer Code:
+```python
+planting_cost['farm1'] = planting_cost['farm1'] * 1.10
+# Update the Objective Function to Reflect New Costs
+model.setObjective(
+    sum(x[i] * transport_cost_supplier_to_farm[i] for i in transport_cost_supplier_to_farm.keys()) +
+    sum(y[j] * transport_cost_farm_to_market[j] for j in transport_cost_farm_to_market.keys()) +
+    sum(planting_cost[f] * sum(y[f, m] for m in markets) for f in farms) +
+    sum(storage_preservation_cost[m] * market_demand[m] for m in markets),
+    GRB.MINIMIZE)
+
+```
