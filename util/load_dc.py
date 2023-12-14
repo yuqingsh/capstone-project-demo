@@ -1,9 +1,14 @@
 # Define the path to the file
-file_path = "data/DC.tmp"
+import gurobipy as gp
+import datetime
+
+FILE_PATH = "data/DC.tmp"
+TIME_MARGIN_COST = 0.4
+DISTANCE_MARGIN_COST = 0.6
 
 
 def load_dc_data():
-    with open(file_path, "r") as file:
+    with open(FILE_PATH, "r") as file:
         lines = file.readlines()
 
     # Get the number of nodes and edges
@@ -13,28 +18,21 @@ def load_dc_data():
     # Extract node data
     nodes = []
     for i in range(1, num_nodes + 1):
-        id, longitude, latitude = map(float, lines[i].split())
-        nodes.append({"id": id, "longitude": longitude, "latitude": latitude})
+        node_id, longitude, latitude = map(float, lines[i].split())
+        node_id = int(node_id)
+        nodes.append({"id": node_id, "longitude": longitude, "latitude": latitude})
 
     # Extract edge data
-    edges = []
-    for i in range(num_nodes + 2, num_nodes + 2 + num_edges * 2, 2):
-        source, target = map(int, lines[i].split())
-        time, distance, category = map(float, lines[i + 1].split())
-        edges.append(
-            {
-                "source": source,
-                "target": target,
-                "time": time,
-                "distance": distance,
-                "category": category,
-            }
-        )
+    edges = {
+        (int(lines[i].split()[0]), int(lines[i].split()[1])): TIME_MARGIN_COST
+        * float(lines[i + 1].split()[0])
+        + DISTANCE_MARGIN_COST * float(lines[i + 1].split()[1])
+        for i in range(num_nodes + 2, num_nodes + 2 + num_edges * 2, 2)
+    }
 
     return nodes, edges
 
 
 if __name__ == "__main__":
     nodes, edges = load_dc_data()
-    print(nodes)
     print(edges)

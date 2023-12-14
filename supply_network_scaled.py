@@ -4,45 +4,24 @@ import gurobipy as gp
 from gurobipy import GRB
 import random
 
-from util.load_dc import load_dc_data
+from util.create_data_supply_net import build_model
+
 
 # Import the data
-nodes, edges = load_dc_data()
+supply, through, demand, arcs, cost = build_model()
+assert not any(
+    value == float("inf") for value in cost.values()
+), "The cost dictionary contains a cost of infinity"
+print(cost)
 
-# Select a subset of nodes
-nodes = random.sample(nodes, 60)  # Replace 1000 with the number of nodes you want
-
-# Randomly assign nodes to be factories, ports, or customers
-factories = random.sample(nodes, 20)  # Replace 20 with the number of factories you want
-ports = random.sample(
-    [node for node in nodes if node not in factories], 20
-)  # Replace 50 with the number of ports you want
-customers = [node for node in nodes if node not in factories and node not in ports]
-
-# Assign random supply values to factories
-supply = {factory["id"]: random.randint(10000, 200000) for factory in factories}
-
-# Assign random throughput values to ports
-through = {port["id"]: random.randint(50000, 100000) for port in ports}
-
-# Assign random demand values to customers
-demand = {customer["id"]: random.randint(10000, 50000) for customer in customers}
-
-# Create a dictionary to capture shipping costs.
-cost = {(edge["source"], edge["target"]): edge["distance"] for edge in edges}
-
-# Create a new model
 model = gp.Model("SupplyNetworkDesign")
 
-# Convert edges to a list of tuples
-edges = list(set((edge["source"], edge["target"]) for edge in edges))
+# OPTIGUIDE DATA CODE GOES HERE
+flow = model.addVars(arcs, obj=cost, name="flow")
 
-# Create variables
-flow = model.addVars(edges, obj=cost, name="flow")
-
-# Add supply constraints
+# Production capacity limits
 factories = supply.keys()
-model.addConstrs(
+factory_flow = model.addConstrs(
     (
         gp.quicksum(flow.select(factory, "*")) <= supply[factory]
         for factory in factories
@@ -50,16 +29,9 @@ model.addConstrs(
     name="factory",
 )
 
-# Add throughput constraints
-ports = through.keys()
-model.addConstrs(
-    (gp.quicksum(flow.select(port, "*")) <= through[port] for port in ports),
-    name="port",
-)
-
-# Add demand constraints
+# Customer demand
 customers = demand.keys()
-model.addConstrs(
+customer_flow = model.addConstrs(
     (
         gp.quicksum(flow.select("*", customer)) >= demand[customer]
         for customer in customers
@@ -67,10 +39,43 @@ model.addConstrs(
     name="customer",
 )
 
-# Optimize model
+# Depot flow conservation
+
+depots = through.keys()
+depot_flow = model.addConstrs(
+    (
+        gp.quicksum(flow.select(depot, "*")) == gp.quicksum(flow.select("*", depot))
+        for depot in depots
+    ),
+    name="depot",
+)
+
+# Depot throughput
+
+depot_capacity = model.addConstrs(
+    (gp.quicksum(flow.select("*", depot)) <= through[depot] for depot in depots),
+    name="depot_capacity",
+)
+
+model.optimize()
+m = model
+
+# OPTIGUIDE CONSTRAINT CODE GOES HERE
+
+m.update()
 model.optimize()
 
-# Print solution
-if model.status == GRB.OPTIMAL:
-    for v in model.getVars():
-        print("%s: %g" % (v.varName, v.x))
+print(time.ctime())
+
+if m.status == GRB.OPTIMAL:
+    product_flow = pd.DataFrame(columns=["From", "To", "Flow"])
+    # print a table of flows for each arc
+    for arc in arcs:
+        if flow[arc].x > 1e-6:
+            product_flow = product_flow._append(
+                {"From": arc[0], "To": arc[1], "Flow": flow[arc].x}, ignore_index=True
+            )
+    product_flow.index = [""] * len(product_flow)
+    print(product_flow)
+else:
+    print("No optimal solution found")
